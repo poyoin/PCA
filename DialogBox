@@ -6,13 +6,22 @@ import TIPPGen as TIPP
 import dask.array as da
 import numpy as np
 from os import path as pt #split filepaths
+import WindowConstructor as Cons
+
+import logging
+logging.basicConfig() #What this does is imports the same logging module as the library does
+# and it sets up a configuration application wide that the plugin’s logging import can use to
+# write messages properly.
+
+
+import LayoutAlg
 
 
 
 class PCAPlugin(CatClass.ISpectralPlugin):
     def Run(self,FilePath,FileName,CurrentProject,WorkFolder,UserPref):
-        self.Metadata = TIPP.LoadMetadata(FilePath[0])
-        print self.Metadata
+#        self.Metadata = TIPP.LoadMetadata(FilePath[0])
+#        print self.Metadata
 
         # 1: self.inputs
         self.FilePath = FilePath
@@ -24,7 +33,7 @@ class PCAPlugin(CatClass.ISpectralPlugin):
         ImageLst = []
         RefLst = []
         RefFileNameLst = []
-
+        print "stamp 1"
         for i in range(len(FilePath)):
             if pt.split(pt.split(FilePath[i])[0])[1] == "Reference Samples":
                 RefLst.append(FilePath[i])
@@ -32,6 +41,7 @@ class PCAPlugin(CatClass.ISpectralPlugin):
             else:
                 ImageLst.append(FilePath[i])
                 self.FileName = FileName[i]
+        print "stamp 2"
         if len(ImageLst)!=1:
             Func.WarningDialog("Please select one Sample", "File Error")
         elif pickle.load(open(pt.splitext(ImageLst[0])[0]+"_metadata.pkl", "rb" ))["Image Type"] != "Normalized_HSI":
@@ -65,6 +75,7 @@ class PCAPlugin(CatClass.ISpectralPlugin):
 
 
 
+
         # 4: save as Array(x,y,weights) as ".TippRCA";; Joan will convert to ".TippPCA"
         # Functions.SaveItem(FilePath, FileName, CurrentProject, Source) - all strings
         #   where:  CurrentProject (String) - Current project folder to extract file from.
@@ -73,36 +84,44 @@ class PCAPlugin(CatClass.ISpectralPlugin):
 
 
         # 5: Define Class for dialog box
+        print "stamp 3"
 
-        class VariableBox(setpoint,id):
+
+        class VariableBox(wx.Frame):
             def __init__(self):
                 wx.Frame.__init__(self,None,wx.ID_ANY,title="TestWindow")
-
+                print "stamp 4"
                 self.BasePanel = wx.Panel(self)
-
+                print "stamp 4.5"
                 self.PanelA = Cons.CreateButtonPanel(self.BasePanel,[["TestButton1","TestButton2"],["TestButton3","TestButton4"],["TestButton5","TestButton6"],["TestButton7","TestButton8"]])
                 self.PanelB = Cons.CreateSpinnerPanel(self.BasePanel,[["AwesomeOption1","1","m"],["AwesomeOption2","2","km"],["AwesomeOption3","3","ly"]])
                 self.PanelC = wx.TextCtrl(self.BasePanel,style=wx.TE_MULTILINE|wx.TE_DONTWRAP)
-
+                print "stamp 5"
                 Layout = [["A","A","C","C","C"],
                           ["A","A","C","C","C"],
                           ["A","A","C","C","C"],
                           ["B","B","C","C","C"],
                           ["B","B","C","C","C"]]
-
+                print "stamp 6"
                 PanelList = {"A":self.PanelA,"B":self.PanelB,"C":self.PanelC}
-
-                CommandList,PanelSize = PCLAlg.LayoutCommand(Layout)
-
+                print "stamp 7"
+                CommandList,PanelSize = [['V_N', 'A.B', [2, 1]], ['H_N', 'AB.C', [1, 2]]],[3, 3]
+                # PCLAlgorithm.LayoutCommand(Layout)
+                print "stamp 8"
                 self.MainPanel = Cons.PanelCustomLayout(self.BasePanel,PanelList,CommandList,PanelSize)
                 self.Fit()
-                self.Show(True)
+#                self.Show(True)
 
 
-
+        ClassInstance = VariableBox()
+        ClassInstance.Show()
 
 
 
             # Click: Functions.KeyCodeNumber(event)
             #       Keycode table: http://www.wxpython.org/docs/api/wx.KeyEvent-class.html
 
+
+
+
+       
